@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# competition data is not redistributed -- but keep the placeholder instructions
+data/
+!**/data/README.md
+
+# large intermediate arrays
+*.npy
+out/_partial_*
+
+# logs
+*.log
+.env
