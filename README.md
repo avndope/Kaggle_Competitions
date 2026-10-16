@@ -51,6 +51,16 @@ A Kaggle access token is read from `~/.kaggle/access_token` (or `$KAGGLE_TOKEN_F
     --seeds 24 --out results/h2h_v1.jsonl
 ```
 
+## Data notes
+
+- Kaggle's daily datasets `kaggle/kaggriculture-episodes-YYYY-MM-DD` hold ~540 of the day's highest-rated games
+  (median average agent rating ~2,850-3,030 in October), ~850 MB zipped. 2026-10-11 is missing on Kaggle (404).
+- 2-6 Oct ran on a runtime labelled kaggle-environments 1.33.0, a version-number-only bump of the same engine
+  (Kaggle staff, discussion 745445). Those games are kept only when they reproduce exactly on the 1.32.7 engine.
+- Games where a side ends below $5,000 are dropped: in that window some agents crashed on a version check.
+- Every kept game reproduces its recording at every step. The top teams request far more than executes: on
+  1, 2 and 13 Oct they asked to sell 257M units and 7.7M sold, so labels are taken from the execution record.
+
 ## Credits and licences
 
 - Engine: `kagri/engine/kaggriculture_v1327.py` and `kaggriculture.json` are unmodified files from

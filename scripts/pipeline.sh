@@ -33,17 +33,18 @@ IFS='|' read -ra TS <<< "$TEACHERS"
 for T in "${TS[@]}"; do
   slug=$(echo "$T" | tr -c 'A-Za-z0-9' '_' | tr -s '_' | sed 's/_$//')
   echo "== 4. teacher: $T ($slug)"
-  # conditioned agent straight from the pretrained model
-  $PY scripts/build_agent.py runs/pretrain/best.pt "agents/pre_$slug" --team "$T" --date "$DATE"
+  # conditioned agent straight from the pretrained model (final EMA weights: choose by games, not validation loss)
+  $PY scripts/build_agent.py runs/pretrain/last.pt "agents/pre_$slug" --team "$T" --date "$DATE"
   # specialised agent: fine-tune on this team's seats only
   $PY scripts/build_dataset.py --zips data/raw/*.zip --out "data/bc_spec_$slug" --train-teams "$T" \
       --vocab data/bc/vocab.json --procs "$PROCS"
   sed -e "s#data/bc_spec/census.jsonl#data/bc_spec_$slug/census.jsonl#" -e "s#\"M & M & P & Q\"#\"$T\"#" \
-      configs/specialize.yaml > "configs/specialize_$slug.yaml"
+      -e "s#^teacher: .*#teacher: null#" configs/specialize.yaml > "configs/specialize_$slug.yaml"
   $PY kagri/bc/train.py --config "configs/specialize_$slug.yaml" --run "spec_$slug"
   $PY scripts/build_agent.py "runs/spec_$slug/best.pt" "agents/spec_$slug" --team "$T" --date "$DATE"
-  echo "== 5. compare with the top replays: $T's own held-out seats"
-  for A in "pre_$slug" "spec_$slug"; do
+  $PY scripts/build_agent.py "runs/spec_$slug/last.pt" "agents/speclast_$slug" --team "$T" --date "$DATE"
+  echo "== 5. compare with the top replays: $T's own held-out seats (the games decide which checkpoint to keep)"
+  for A in "pre_$slug" "spec_$slug" "speclast_$slug"; do
     $PY -m kagri.eval.takeover --agent "agents/$A" --team "$T" --census data/bc/census.jsonl --zips data/raw/*.zip \
         --held-out --n 60 --procs "$PROCS" --out "results/takeover_$A.jsonl"
   done

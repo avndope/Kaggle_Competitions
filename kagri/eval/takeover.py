@@ -61,9 +61,11 @@ def run_world(job):
     me, op = seat, 1 - seat
     fn = Tape(tapes[me]) if agent_path == "tape" else load_agent(agent_path, fresh=True)
     opp = Tape(tapes[op])
-    g = Game(int(rep["info"]["seed"]), shops=shops)
+    g = Game(int(rep["info"]["seed"]), shops=shops, log=True)
     T0 = 24 * day
     errors, worst = 0, 0.0
+    by_day, rec_by_day = [], []
+    revenue = {}
     while not g.done:
         t = g.step_no
         o = g.observe(me)
@@ -75,10 +77,17 @@ def run_world(job):
         errors += e if t >= T0 else 0
         acts[op] = opp(g.observe(op))
         g.step(acts)
+        for o, item, price in g.last_exec[me]["cash"]:
+            if o == "SELL":
+                revenue[item] = revenue.get(item, 0.0) + price
+        if g.step_no % 24 == 0 or g.done:   # money at the end of each day: ours vs the recorded top player's
+            by_day.append(g.money(me))
+            rec_by_day.append(float(steps[min(g.step_no, 719)][0]["observation"]["farms"][me]["money"]))
     r = g.rewards()
     rec = [float(x) for x in rep["rewards"]]
     return dict(id=eid, seat=me, team=rep["info"]["TeamNames"][me], oteam=rep["info"]["TeamNames"][op],
-                me=r[me], op=r[op], rec_me=rec[me], rec_op=rec[op], errors=errors, max_call=round(worst, 3))
+                me=r[me], op=r[op], rec_me=rec[me], rec_op=rec[op], errors=errors, max_call=round(worst, 3),
+                money_by_day=by_day, rec_money_by_day=rec_by_day, revenue=revenue)
 
 
 def summarize(rows, title=""):

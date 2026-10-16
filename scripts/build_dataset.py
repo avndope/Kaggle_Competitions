@@ -35,6 +35,8 @@ from labels import make_labels  # noqa: E402
 from resim import resim  # noqa: E402
 
 BAD = ("ERROR", "TIMEOUT", "INVALID")
+VERSIONS = ("1.32.7", "1.33.0")
+MIN_BANK = 5000.0   # a side ending near the 3,000 start crashed or idled (e.g. version-check failures, 2-6 Oct)
 
 
 def work(job):
@@ -47,6 +49,8 @@ def work(job):
             if "meta" in lab.files:
                 row = json.loads(str(lab["meta"]))
                 row.update(day=day, avg_score=avg)
+                if min(float(x) for x in row["rewards"]) < MIN_BANK:
+                    return row, "passive_or_crashed_side"
                 return row, "cached" if int(lab["parity"]) < 0 else "not_reproduced"
         with zipfile.ZipFile(zpath) as z:
             d = json.loads(z.read(member))
@@ -56,10 +60,14 @@ def work(job):
                    statuses=d.get("statuses"), avg_score=avg)
         if len(st) != 720 or len(teams) != 2:
             return row, "incomplete"
-        if d.get("module_version") != "1.32.7":
+        # 1.33.0 (2-6 Oct) was a version-number-only bump of the same engine (Kaggle staff, discussion 745445);
+        # such games are kept only if they reproduce exactly on the 1.32.7 engine (parity check below).
+        if d.get("module_version") not in VERSIONS:
             return row, "other_version"
         if any(a.get("status") in BAD for s in st for a in s):
             return row, "error_status"
+        if min(float(x) for x in d.get("rewards") or [0, 0]) < MIN_BANK:
+            return row, "passive_or_crashed_side"
         if os.path.exists(ep_path) and os.path.exists(lab_path):
             lab = np.load(lab_path)
             row.update(parity=int(lab["parity"]), req_sell=lab["req_sell_tot"].tolist(), exec_sell=lab["exec_sell_tot"].tolist())
