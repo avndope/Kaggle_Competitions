@@ -1,0 +1,44 @@
+# Stage 1: behaviour cloning on every trainable seat of the post-deadline top games (fixed final agents),
+# conditioned on team / date bucket / outcome. Sized for a 4 GB laptop GPU (RTX 3050): ~3.3M parameters.
+# Learnings: DECEM (5th) pretrain -> fine-tune -> specialise; Yuan800 (gold range) 4-7M params from scratch.
+seed: 1
+census: data/bc/census.jsonl
+vocab_file: data/bc/vocab.json
+ep_dir: data/cache/ep
+lab_dir: data/cache/lab
+since: '2026-09-01'
+recency_halflife: null     # post-deadline agents are fixed versions: no recency weighting needed
+teacher: M & M & P & Q     # extra validation on the 1st-place team's seats
+model:
+  d: 192
+  layers: 6
+  heads: 6
+  ff: 768
+  drop: 0.0
+  ckpt: false
+  cap: 30.0
+  ndate: 60                # date buckets from 2026-08-17; 2026-10-13 = bucket 57
+  dec_layers: 2
+  dec_ff: 384
+  rope_theta: 100.0
+  attn: flash
+loss_w: {op: 1.0, tile: 1.0, item: 0.5, raw: 1.0, qty: 0.5, sell: 1.0, seed: 1.0, buyp: 1.0, anim: 1.0, hire: 1.0, land: 1.0}
+optim: adamw
+skip_gnspike: true
+batch_size: 192
+workers: 8
+pool: 32
+lr: 0.0006
+wd: 0.05
+clip: 1.0
+warmup: 1000
+steps: 40000
+compile: false             # no C compiler in this WSL image; torch.compile needs one
+ema: 0.9995
+log_every: 250
+ckpt_every: 10000
+eval_every: 2500
+val_mod: 25                # episode_id % 25 == 0 -> validation (both seats of a game together)
+val_eps: 64
+val_per_ep: 128
+smoke: {steps: 60, log_every: 10, eval_every: 30, workers: 2, pool: 4, val_eps: 4, val_per_ep: 32, batch_size: 64}
