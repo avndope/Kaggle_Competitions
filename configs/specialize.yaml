@@ -6,7 +6,7 @@ ep_dir: data/cache/ep
 lab_dir: data/cache/lab
 since: '2026-09-01'
 recency_halflife: null     # post-deadline agents are fixed versions: no recency weighting needed
-teacher: M & M & P & Q     # extra validation on the 1st-place team's seats
+teacher: null
 model:
   d: 192
   layers: 6
@@ -41,5 +41,5 @@ val_eps: 64
 val_per_ep: 128
 smoke: {steps: 60, log_every: 10, eval_every: 30, workers: 2, pool: 4, val_eps: 4, val_per_ep: 32, batch_size: 64}
 # Stage 3 (DECEM, Arda, 4th place): fine-tune on ONE consistent teacher's seats; deploy with that team's embedding.
-init: runs/pretrain/best.pt
+init: runs/pretrain/last.pt
 ft_teams: ["M & M & P & Q"]

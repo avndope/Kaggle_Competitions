@@ -4,7 +4,7 @@
 
 Each DataLoader worker featurises its own batches; the main process only moves tensors.
 """
-import json, os
+import json, os, sys
 
 import numpy as np
 import torch
@@ -150,8 +150,10 @@ class EpisodePool(IterableDataset):
 
 def loader(eps, batch_size, workers=12, pool=48, seed=0, seat_filter=None, weights=None):
     ds = EpisodePool(eps, batch_size, pool=pool, seed=seed, seat_filter=seat_filter, weights=weights)
+    # kagri: Python 3.14 defaults to forkserver on Linux, which cannot pickle the specialisation seat filter
+    ctx = "fork" if (workers > 0 and sys.platform.startswith("linux")) else None
     return DataLoader(ds, batch_size=None, num_workers=workers, pin_memory=True, persistent_workers=workers > 0,
-                      prefetch_factor=4 if workers > 0 else None)
+                      prefetch_factor=4 if workers > 0 else None, multiprocessing_context=ctx)
 
 
 def fixed_val(eps, n_eps=64, per_ep=256, seed=1, seat_filter=None):
