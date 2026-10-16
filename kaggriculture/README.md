@@ -1,7 +1,7 @@
 # kaggriculture-bc
 
 A behaviour-cloning agent for Kaggle's [Kaggriculture](https://www.kaggle.com/competitions/kaggriculture), built from
-the competition's top solutions (see `learnings.md` in the competition folder). It runs locally on a laptop GPU,
+the competition's top solutions (write-up: [`docs/learnings.md`](docs/learnings.md)). It runs locally on a laptop GPU,
 plays on the verbatim official engine, and is evaluated against the top teams' recorded games.
 
 ## What is in it
@@ -18,6 +18,7 @@ plays on the verbatim official engine, and is evaluated against the top teams' r
 ## Setup
 
 ```bash
+cd kaggriculture
 python3 -m venv .venv
 .venv/bin/pip install torch numpy pyarrow pyyaml
 ```
@@ -124,4 +125,4 @@ commands above rebuild both.
   [kaggriculture-bc](https://github.com/Decem-Y/kaggriculture-bc) (5th place), MIT License
   (`third_party/LICENSE-DECEM-kaggriculture-bc`). Every adapted file says so in its header; our changes are marked
   `kagri:`.
-- Method choices follow the public write-ups of the top teams; the sources are listed in `learnings.md`.
+- Method choices follow the public write-ups of the top teams; the sources are listed in [`docs/learnings.md`](docs/learnings.md).
