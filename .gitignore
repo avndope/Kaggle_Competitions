@@ -1,0 +1,9 @@
+.venv/
+data/
+runs/
+agents/
+results/
+__pycache__/
+*.pyc
+*.npz
+*.pt
