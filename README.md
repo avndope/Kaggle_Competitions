@@ -51,6 +51,60 @@ A Kaggle access token is read from `~/.kaggle/access_token` (or `$KAGGLE_TOKEN_F
     --seeds 24 --out results/h2h_v1.jsonl
 ```
 
+## Results (first full run, 16 Oct 2026)
+
+All numbers come from this repo's tools on a laptop (RTX 3050 4 GB, 16 cores).
+
+**Simulation checks**
+- `kagri/engine/kaggriculture_v1327.py` is byte-identical to kaggle-environments 1.32.7's engine.
+- 6,444 of 6,449 top games (1-13 Oct) reproduce their recording at every step: shared state, both private states
+  and final money. The other 5 had error statuses.
+- Replaying the top players' own actions in the seat-takeover tool reproduces 204 / 204 held-out games to the dollar.
+
+**Training:** 3.79M-parameter model, 40k steps × batch 192 (3.9 h). 94.0% of held-out unit actions and 57% of
+whole turns match the recorded top players exactly.
+
+**Seat takeover** (`kagri/eval/takeover.py`): the agent, conditioned on a team, plays that team's own held-out
+seats with the opponent's recorded actions and the shops pinned. "Money share" is our final money divided by
+what the team really made in the same seat.
+
+| Seat taken | Games | Money share | Our win rate | Team's real win rate |
+|---|---|---|---|---|
+| M & M & P & Q (1st) | 48 | 1.026 ± 0.020 | 50.0% | 66.7% |
+| DSM (3rd) | 53 | 1.001 ± 0.004 | 62.3% | 52.8% |
+| Victor @ Tufa Labs (2nd) | 49 | 1.020 ± 0.009 | 55.1% | 40.8% |
+| DECEM (5th) | 54 | 1.008 ± 0.008 | 72.2% | 48.1% |
+| *our competition agent (v16), in the M & M & P & Q seats* | 48 | 0.910 ± 0.029 | 12.5% | 66.7% |
+
+The pinned opponent cannot react, so read these as a screen; the closed-loop games below are the gate.
+
+**Closed-loop head-to-head** (`kagri/eval/h2h.py`, every seed played with both seat orders):
+
+| Agent | Opponent | Seeds won | Margin per game |
+|---|---|---|---|
+| conditioned on DSM | our competition agent (v16) | 16 / 16 | +$35,537 ± 1,079 |
+| 10k-step checkpoint, conditioned on M & M & P & Q | v16 | 24 / 24 | +$27,708 ± 897 |
+| 10k-step checkpoint, conditioned on M & M & P & Q | hl0927 (the most-copied public agent) | 24 / 24 | +$27,651 ± 927 |
+
+**Which top team's style is strongest when both sides react?** A closed-loop round robin of the pretrained model
+conditioned on different teams (row agent's win rate, 16 seeds × both seat orders):
+
+| Style copied | vs 1st (M & M & P & Q) | vs 2nd (Victor) | vs 3rd (DSM) | vs 5th (DECEM) | Average |
+|---|---|---|---|---|---|
+| M & M & P & Q | — | 44% | 78% | 84% | **69%** |
+| Victor @ Tufa Labs | 56% (n.s., +$734 ± 322) | — | 59% | 78% | **65%** |
+| DSM | 22% (p 0.035) | 41% | — | 75% (p 0.04) | 46% |
+| DECEM | 16% (p 0.007) | 22% (p 0.035) | 25% | — | 21% |
+
+The order matches the real final leaderboard (1st, 2nd, 3rd, 5th): conditioning on a team reproduces that team's
+relative strength.
+
+Specialising on one team (3k extra steps on M & M & P & Q's seats) changed nothing measurable over conditioning the
+pretrained model on that team (takeover flips +5 / −6).
+
+Not included in the repo: the replay data (~10 GB of Kaggle zips, 1.4 GB of caches) and the trained weights; the
+commands above rebuild both.
+
 ## Data notes
 
 - Kaggle's daily datasets `kaggle/kaggriculture-episodes-YYYY-MM-DD` hold ~540 of the day's highest-rated games

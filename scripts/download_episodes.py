@@ -19,8 +19,7 @@ import urllib.error
 import urllib.request
 
 API = "https://www.kaggle.com/api/v1"
-TOKEN_PATHS = [os.environ.get("KAGGLE_TOKEN_FILE", ""), os.path.expanduser("~/.kaggle/access_token"),
-               "/mnt/c/Users/avnbe/.kaggle/access_token"]
+TOKEN_PATHS = [os.environ.get("KAGGLE_TOKEN_FILE", ""), os.path.expanduser("~/.kaggle/access_token")]
 
 
 def token():
