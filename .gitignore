@@ -14,8 +14,11 @@ out/_partial_*
 *.log
 .env
 
-# engram artefacts that must never be committed (machine-local state)
-.engram/branch.json
-.engram/worktree.json
-.engram/needs_update
-.engram/cache/
+# engram artefacts that must never be committed (machine-local state).
+# The ** prefix matters: a pattern with a slash is anchored, so plain
+# `.engram/cache/` would miss <folder>/.engram/cache/ written by the post-commit hook.
+**/.engram/branch.json
+**/.engram/worktree.json
+**/.engram/needs_update
+**/.engram/cache/
+.graphify/
