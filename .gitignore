@@ -13,3 +13,9 @@ out/_partial_*
 # logs
 *.log
 .env
+
+# engram artefacts that must never be committed (machine-local state)
+.engram/branch.json
+.engram/worktree.json
+.engram/needs_update
+.engram/cache/
